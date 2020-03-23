@@ -28,6 +28,14 @@ My pipeline consisted of 5 steps. First, I converted the images to grayscale, th
 In order to draw a single line on the left and right lanes, I modified the draw_lines() function by ...
 
 If you'd like to include images to show how the pipeline works, here is how to include an image: 
+The pipeline consists on six steps represented by six different functions:
+
+grayAction: Returns a gray scaled version of the input image using cv2.cvtColor method.
+blurAction: Applies a Gaussian blur to the provided image using cv2.GaussianBlur method.
+cannyAction: Use a Canny transformation to find edges on the image using cv2.Canny method.
+maskAction: Eliminate parts of the image that are not interesting in regards to the line detection (for now...).
+houghAction: Use a Hough transformation to find the lines on the masked image using cv2.cv2.HoughLinesP. It also adjust a line to the set of lines returned by the Hough transformation in order to have a clearer-two-lines representation of the road lines using np.polyfit method.
+weighted_img: Merges the output of houghAction with the original image to represent the lines on it.
 
 ![alt text][image1]
 
