@@ -1,55 +1,113 @@
-# **Finding Lane Lines on the Road** 
-
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file. But feel free to use some other method and submit a pdf if you prefer.
-
----
-
-**Finding Lane Lines on the Road**
-
-The goals / steps of this project are the following:
-* Make a pipeline that finds lane lines on the road
-* Reflect on your work in a written report
+#**Finding Lane Lines on the Road**
 
 
-[//]: # (Image References)
+## Goal
+Selfdriving car needs to understand the environment to find out its next step. Camera is one of the sensors helps the car to find the portion of the road. Goal of the project is to find right and left lane in realtime to make car aware of its trajectory. Lane detection and marking involves several steps starting from getting single frame from video to final lane marking. This project provides pipeline to process single video frame.
 
-[image1]: ./examples/grayscale.jpg "Grayscale"
+## Pipeline
+Image process pipeline takes an image applies series of filters in which output of one filter is used as input for other. Pipeline in this project outputs annotated lane image.
 
----
+## Pipeline Components
+There are six components used in this project.
 
-### Reflection
+* grayscale: It uses cvtColor of opencv to return single channel gray image. This take 3 channel image from video as input.
 
-### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
+<figure>
+ <img src="pipeline_output_images/gray_scale.jpg" width="380" alt="Combined Image" />
+ <figcaption>
+ <p></p> 
+ <p style="text-align: center;">Output of pipeline function grayscale</p> 
+ </figcaption>
+</figure>
 
-My pipeline consisted of 5 steps. First, I converted the images to grayscale, then I .... 
+* gaussian_blur: It blurs output image of grayscale by removing noise using cv2::GaussianBlur. Kernel size used for smoothing is 5.
+<figure>
+ <img src="pipeline_output_images/gaussian_blur.jpg" width="380" alt="Combined Image" />
+ <figcaption>
+ <p></p> 
+ <p style="text-align: center;">Output of pipeline function gaussian_blur</p> 
+ </figcaption>
+</figure>
 
-In order to draw a single line on the left and right lanes, I modified the draw_lines() function by ...
+* canny: Helps to get different forms of edges from the blured image using cv2.Canny.
 
-If you'd like to include images to show how the pipeline works, here is how to include an image: 
-The pipeline consists on six steps represented by six different functions:
+<figure>
+ <img src="pipeline_output_images/canny_edge.jpg" width="380" alt="Combined Image" />
+ <figcaption>
+ <p></p> 
+ <p style="text-align: center;">Output of pipeline function canny</p> 
+ </figcaption>
+</figure>
 
-grayAction: Returns a gray scaled version of the input image using cv2.cvtColor method.
-blurAction: Applies a Gaussian blur to the provided image using cv2.GaussianBlur method.
-cannyAction: Use a Canny transformation to find edges on the image using cv2.Canny method.
-maskAction: Eliminate parts of the image that are not interesting in regards to the line detection (for now...).
-houghAction: Use a Hough transformation to find the lines on the masked image using cv2.cv2.HoughLinesP. It also adjust a line to the set of lines returned by the Hough transformation in order to have a clearer-two-lines representation of the road lines using np.polyfit method.
-weighted_img: Merges the output of houghAction with the original image to represent the lines on it.
+* Region of intereset: Selects the region on canny output. In the pipeline currently vertices of the region are partially hardcoded. 
+* hough_lines: It uses canny transformation output and returns line drawn on a blank image of the input image size. Internally it findes all the lines in the region using cv2.HoughLinesP. Input lines are fed to another helper function draw_lines() that draws line. Left and right lines are determined by the slope of the line. Positive slope represents right line and -ve represents left line. A slope threshold is used to filter out unwanted lines. Average (x). (y) and slope is used to calculate intercept of the straight line. So that line can be extrapolated using y = slope * x + intercept. Since Y is known from slected region, find extrapolated co-ordinates x,x2 using x = y - intercept / slope for left and right lines. Draw extrapolated line.
 
-![alt text][image1]
+<figure>
+ <img src="pipeline_output_images/hough_lines.jpg" width="380" alt="Combined Image" />
+ <figcaption>
+ <p></p> 
+ <p style="text-align: center;">Output of pipeline function hough_lines</p> 
+ </figcaption>
+</figure>
+
+* weighted_img: Use cv2.addWeighted to blend original and image with line drawn from the previous component.
+
+<figure>
+ <img src="test_images_output/solidYellowLeft.jpg" width="380" alt="Combined Image" />
+ <figcaption>
+ <p></p> 
+ <p style="text-align: center;">Final combined blended image</p> 
+ </figcaption>
+</figure>
+
+## Results
+### Output of test images from test_images
+<figure>
+ <img src="test_images_output/solidWhiteCurve.jpg" width="380" alt="Combined Image" />
+ <figcaption>
+ <p></p> 
+ <p style="text-align: center;">solidWhiteCurve</p> 
+ </figcaption>
+</figure>
+<figure>
+ <img src="test_images_output/solidWhiteRight.jpg" width="380" alt="Combined Image" />
+ <figcaption>
+ <p></p> 
+ <p style="text-align: center;">solidWhiteRight</p> 
+ </figcaption>
+</figure>
+<figure>
+ <img src="test_images_output/solidYellowCurve.jpg" width="380" alt="Combined Image" />
+ <figcaption>
+ <p></p> 
+ <p style="text-align: center;">solidYellowCurve</p> 
+ </figcaption>
+</figure>
+<figure>
+ <img src="test_images_output/solidYellowCurve2.jpg" width="380" alt="Combined Image" />
+ <figcaption>
+ <p></p> 
+ <p style="text-align: center;">solidYellowCurve2</p> 
+ </figcaption>
+</figure>
+<figure>
+ <img src="test_images_output/solidYellowLeft.jpg" width="380" alt="Combined Image" />
+ <figcaption>
+ <p></p> 
+ <p style="text-align: center;">solidYellowLeft</p> 
+ </figcaption>
+</figure>
+<figure>
+ <img src="test_images_output/whiteCarLaneSwitch.jpg" width="380" alt="Combined Image" />
+ <figcaption>
+ <p></p> 
+ <p style="text-align: center;">whiteCarLaneSwitch</p> 
+ </figcaption>
+</figure>
+
+## Potential shortcomings with current pipeline
+Pipeline woks fine with "test_videos/solidWhiteRight.mp4" and "test_videos/solidYellowLeft.mp4" but performs badly on "test_videos/challenge.mp4". Whenever there is curve or combination of shorter lines with significant slope differences cause average slope to deviate from most of the lines.
 
 
-### 2. Identify potential shortcomings with your current pipeline
-
-
-One potential shortcoming would be what would happen when ... 
-
-Another shortcoming could be ...
-
-
-### 3. Suggest possible improvements to your pipeline
-
-A possible improvement would be to ...
-
-Another potential improvement could be to ...
+## Possible improvements
+There is partial hardcoding in region selection. Slecting dynamic region will help to improve line detection when lane is curved. Also dividing lane into smaller more than one regions might help too. But it also might add performance penalty.
